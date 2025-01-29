@@ -1,0 +1,215 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to bottom, #007BFF, #0056b3);
+    color: white;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: white;
+    color: #007BFF;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #e0e0e0;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.upload-container,
+.result-container {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.upload-container h2,
+.result-container h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+#file-input {
+    margin-bottom: 20px;
+}
+
+#detect-button,
+#view-optimized-button,
+#save-button,
+#fine-tune-button,
+#apply-tune-button,
+#delete-selected-button {
+    padding: 12px 25px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+#detect-button:hover,
+#view-optimized-button:hover,
+#save-button:hover,
+#fine-tune-button:hover,
+#apply-tune-button:hover,
+#delete-selected-button:hover {
+    background-color: #0056b3;
+}
+
+#loading {
+    margin-top: 20px;
+}
+
+#loading img {
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }    to {
+        transform: rotate(360deg);
+    }
+}
+
+#preview-container,
+#image-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#preview-container img,
+#image-container img {
+    max-width: 200px;
+    height: auto;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+#preview-container img:hover,
+#image-container img:hover {
+    transform: scale(1.1);
+}
+
+#image-container img.selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 123, 255, 0.3);
+    border-radius: 5px;
+}
+
+.button-group {
+    margin-top: 20px;
+}
+
+#fine-tune-section {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.tune-group {
+    margin: 10px;
+}
+
+#fine-tune-section label {
+    margin-right: 10px;
+}
+
+#fine-tune-section input {
+    width: 60px;
+    padding: 5px;
+    margin-right: 20px;
+}
+
+#analysis-info {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 20px;
+}
+
+#progress-bar {
+    width: 100%;
+    margin-top: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#progress-bar::-webkit-progress-bar {
+    background-color: #e0e0e0;
+}
+
+#progress-bar::-webkit-progress-value {
+    background-color: #007BFF;
+}
+
+#progress-bar::-moz-progress-bar {
+    background-color: #007BFF;
+}

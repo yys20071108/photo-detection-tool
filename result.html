@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检测结果</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <a href="detection.html" class="back-button">返回上传页面</a>
+    <div class="result-container">
+        <h2>检测结果</h2>
+        <div id="image-container"></div>
+        <div class="button-group">
+            <button id="view-optimized-button">查看优化过后的</button>
+            <button id="save-button">全部保存</button>
+            <button id="fine-tune-button">细微调整</button>
+            <button id="delete-selected-button">删除选中</button>
+        </div>
+        <div id="fine-tune-section" style="display: none;">
+            <div class="tune-group">
+                <label for="brightness">亮度:</label>
+                <input type="number" id="brightness" value="100">
+            </div>
+            <input type="number" id="contrast" value="100">
+        </div>
+        <div class="tune-group">
+            <label for="sharpness">锐度:</label>
+            <input type="number" id="sharpness" value="100">
+        </div>
+        <button id="apply-tune-button">应用调整</button>
+    </div>
+    <div id="analysis-info" style="display: none;">
+        <h3>照片分析信息</h3>
+        <p id="face-count">检测到的人脸数量: <span></span></p>
+        <p id="filtered-count">筛选掉的照片数量: <span></span></p>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+
+</html>
