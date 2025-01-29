@@ -32,8 +32,10 @@ if (document.getElementById('file-input')) {
             const worker = new Worker('worker.js');
 
             worker.onmessage = function (e) {
+                console.log('Message received from worker:', e.data);
                 if (e.data.hasOwnProperty('progress')) {
                     progressBar.value = e.data.progress;
+                    console.log('Progress updated:', e.data.progress);
                 } else {
                     const { optimizedImages: optImages, faceCount: fc, filteredCount: fcCount } = e.data;
                     loading.style.display = 'none';
@@ -57,6 +59,7 @@ if (document.getElementById('file-input')) {
             };
 
             worker.postMessage({ uploadedImages });
+            console.log('Message posted to worker:', { uploadedImages });
         } else {
             alert('您的浏览器不支持 Web Worker，可能会影响性能。');
             // 可以选择使用其他方式处理
@@ -78,8 +81,8 @@ if (document.getElementById('view-optimized-button')) {
             return canvas;
         });
     }
-    faceCount = sessionStorage.getItem('faceCount');
-    filteredCount = sessionStorage.getItem('filteredCount');
+    faceCount = parseInt(sessionStorage.getItem('faceCount'), 10);
+    filteredCount = parseInt(sessionStorage.getItem('filteredCount'), 10);
 
     const imageContainer = document.getElementById('image-container');
     const viewOptimizedButton = document.getElementById('view-optimized-button');
@@ -109,7 +112,7 @@ if (document.getElementById('view-optimized-button')) {
     const saveButton = document.getElementById('save-button');
     saveButton.addEventListener('click', () => {
         optimizedImages.forEach((canvas, index) => {
-            const link = document.createElement('a'); // 修复：添加了 'a'
+            const link = document.createElement('a');
             link.href = canvas.toDataURL();
             link.download = `optimized_image_${index}.png`;
             link.click();

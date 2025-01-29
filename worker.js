@@ -3,11 +3,13 @@ importScripts('https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@latest'
 
 self.onerror = function (error) {
     console.error('Web Worker 出错:', error.message);
+    self.postMessage({ error: error.message });
 };
 
 self.onmessage = async function (e) {
     try {
         const { uploadedImages } = e.data;
+        console.log('Received message from main script:', e.data);
         const model = await blazeface.load();
         const optimizedImages = [];
         let faceCount = 0;
@@ -26,7 +28,7 @@ self.onmessage = async function (e) {
                 const leftEye = face.landmarks[0];
                 const rightEye = face.landmarks[1];
                 // 这里简单假设眼睛垂直距离过小为闭眼
-                if (Math.abs(leftEye[1] -                    face.landmarks[2][1]) < 10 || Math.abs(rightEye[1] - face.landmarks[3][1]) < 10) {
+                if (Math.abs(leftEye[1] - face.landmarks[2][1]) < 10 || Math.abs(rightEye[1] - face.landmarks[3][1]) < 10) {
                     shouldKeep = false;
                     filteredCount++;
                 }
@@ -96,6 +98,6 @@ self.onmessage = async function (e) {
         self.postMessage({ optimizedImages, faceCount, filteredCount });
     } catch (error) {
         console.error('人脸检测及优化过程出错:', error);
-        // 可以考虑发送错误消息给主线程
+        self.postMessage({ error: error.message });
     }
 };
