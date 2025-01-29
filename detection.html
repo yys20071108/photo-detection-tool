@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>上传照片</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <a href="index.html" class="back-button">返回首页</a>
     <div class="upload-container">
         <h2>步骤 1: 上传照片</h2>
         <input type="file" id="file-input" multiple>
         <button id="detect-button">检测与筛选</button>
+        <button id="auto-optimize-button">自动优化调整</button>
         <div id="loading" style="display: none;">
             <img src="loading.svg" alt="Loading">
-            <p>正在检测与筛选，请稍候...</p>
+            <p>正在处理，请稍候...</p>
             <progress id="progress-bar" value="0" max="100"></progress>
         </div>
         <div id="preview-container"></div>
     </div>
     <script src="script.js"></script>
 </body>
-
 </html>
