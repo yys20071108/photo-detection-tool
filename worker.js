@@ -46,7 +46,7 @@ self.onmessage = async function (e) {
                     const gray = (data[j] + data[j + 1] + data[j + 2]) / 3;
                     histogram[Math.round(gray)]++;
                 }
-                const cdf = new Array(256);
+                const cdf = new Array(256).fill(0);
                 cdf[0] = histogram[0];
                 for (let j = 1; j < 256; j++) {
                     cdf[j] = cdf[j - 1] + histogram[j];
