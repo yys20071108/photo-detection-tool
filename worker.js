@@ -9,7 +9,6 @@ self.onerror = function (error) {
 self.onmessage = async function (e) {
     try {
         const { uploadedImages } = e.data;
-        console.log('Received message from main script:', e.data);
         const model = await blazeface.load();
         const optimizedImages = [];
         let faceCount = 0;
