@@ -1,19 +1,636 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>漫展照片检测与筛选工具</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>COSPro 3.1 Web专业版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0078D7;
+            --secondary: #4CAF50;
+            --dark-bg: #1E1E1E;
+            --panel-bg: #252526;
+            --text: #D4D4D4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: '微软雅黑', system-ui;
+            background: var(--dark-bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 左侧控制面板 */
+        .control-panel {
+            background: var(--panel-bg);
+            padding: 20px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            border-right: 1px solid #404040;
+        }
+
+        /* 主工作区 */
+        .workspace {
+            position: relative;
+            display: grid;
+            grid-template-rows: 60px 1fr;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid #404040;
+        }
+
+        /* 画布容器 */
+        .canvas-container {
+            position: relative;
+            overflow: auto;
+            background: repeating-conic-gradient(#333 0% 25%, #2b2b2b 0% 50%) 
+                        50% / 20px 20px;
+        }
+
+        #mainCanvas {
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            margin: 20px auto;
+        }
+
+        /* 模块卡片样式 */
+        .module-card {
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .module-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            background: #3C3C3C;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+        }
+
+        /* 滑动条样式 */
+        .slider-container {
+            margin: 10px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #555;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* 硬件监控 */
+        .hardware-monitor {
+            display: grid;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        /* 加载动画 */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #fff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-
 <body>
-    <div class="hero">
-        <h1>漫展照片检测与筛选工具</h1>
-        <p>专为摄影师打造，自动检测和优化漫展照片，让每一张照片都完美无瑕。</p>
-        <a href="detection.html" class="button">立即使用</a>
-    </div>
-</body>
+    <!-- 左侧控制面板 -->
+    <div class="control-panel">
+        <div class="module-card">
+            <h2 class="module-title"><i class="fas fa-cog"></i>系统控制</h2>
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-upload"></i>导入图片
+            </button>
+            <input type="file" id="fileInput" hidden accept="image/*">
+            <button class="btn" onclick="saveImage()">
+                <i class="fas fa-save"></i>导出图片
+            </button>
+        </div>
 
+        <!-- AI优化模块 -->
+        <div class="module-card">
+            <h2 class="module-title"><i class="fas fa-magic"></i>AI优化</h2>
+            <div class="ai-controls">
+                <button class="btn" onclick="autoEnhance()">
+                    <i class="fas fa-wand-magic-sparkles"></i>一键增强
+                </button>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>锐化强度</span>
+                        <span id="sharpValue">1.0</span>
+                    </div>
+                    <input type="range" id="sharpness" min="0" max="2" step="0.1" value="1">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>亮度</span>
+                        <span id="brightnessValue">1.0</span>
+                    </div>
+                    <input type="range" id="brightness" min="0.1" max="2" step="0.1" value="1">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>对比度</span>
+                        <span id="contrastValue">1.0</span>
+                    </div>
+                    <input type="range" id="contrast" min="0.1" max="2" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <!-- 硬件监控 -->
+        <div class="module-card">
+            <h2 class="module-title"><i class="fas fa-microchip"></i>系统状态</h2>
+            <div class="hardware-monitor">
+                <div>CPU使用率: <span id="cpuUsage">检测中...</span></div>
+                <div>内存占用: <span id="memUsage">0 MB</span></div>
+                <div>GPU加速: <span id="gpuStatus">检测中...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主工作区 -->
+    <div class="workspace">
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <button class="btn" onclick="toggleFullscreen()">
+                <i class="fas fa-expand"></i>全屏模式
+            </button>
+            <button class="btn" onclick="toggleCompare()">
+                <i class="fas fa-columns"></i>对比视图
+            </button>
+            <button class="btn" onclick="cospro.undo()">
+                <i class="fas fa-undo"></i>撤销
+            </button>
+            <button class="btn" onclick="cospro.redo()">
+                <i class="fas fa-redo"></i>重做
+            </button>
+            <button class="btn" onclick="cospro.rotate90()">
+                <i class="fas fa-sync-alt"></i>旋转90°
+            </button>
+            <button class="btn" onclick="cospro.crop()">
+                <i class="fas fa-crop"></i>裁剪
+            </button>
+            <div class="loader" id="processingLoader"></div>
+        </div>
+
+        <!-- 画布区域 -->
+        <div class="canvas-container">
+            <canvas id="mainCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 核心系统初始化
+        class COSProSystem {
+            constructor() {
+                this.canvas = document.getElementById('mainCanvas');
+                this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+                this.originalImageData = null;
+                this.currentImageData = null;
+                this.gpuEnabled = false;
+                this.history = [];
+                this.historyIndex = -1;
+                this.init();
+            }
+
+            async init() {
+                await this.detectHardware();
+                this.setupEventListeners();
+                this.startHardwareMonitor();
+            }
+
+            async detectHardware() {
+                try {
+                    const adapter = await navigator.gpu?.requestAdapter();
+                    this.gpuEnabled = !!adapter;
+                    document.getElementById('gpuStatus').textContent = 
+                        this.gpuEnabled ? '已启用 (WebGPU)' : '不可用';
+                } catch (error) {
+                    console.error('硬件检测失败:', error);
+                }
+            }
+
+            setupEventListeners() {
+                // 文件上传处理
+                document.getElementById('fileInput').addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (file) await this.loadImage(file);
+                });
+
+                // 实时参数调整
+                document.getElementById('sharpness').addEventListener('input', (e) => {
+                    document.getElementById('sharpValue').textContent = e.target.value;
+                    this.applySharpness(e.target.value);
+                });
+
+                document.getElementById('brightness').addEventListener('input', (e) => {
+                    document.getElementById('brightnessValue').textContent = e.target.value;
+                    this.applyBrightness(e.target.value);
+                });
+
+                document.getElementById('contrast').addEventListener('input', (e) => {
+                    document.getElementById('contrastValue').textContent = e.target.value;
+                    this.applyContrast(e.target.value);
+                });
+            }
+
+            // 图像处理核心方法
+            async loadImage(file) {
+                showLoader();
+                const img = await createImageBitmap(file);
+                this.canvas.width = img.width;
+                this.canvas.height = img.height;
+                this.ctx.drawImage(img, 0, 0);
+                this.originalImageData = this.ctx.getImageData(0, 0, img.width, img.height);
+                this.currentImageData = this.originalImageData;
+                this.history = [this.currentImageData];
+                this.historyIndex = 0;
+                hideLoader();
+            }
+
+            applySharpness(intensity) {
+                if (!this.originalImageData) return;
+                
+                const processed = this.gpuEnabled ? 
+                    this.gpuSharpen(this.originalImageData, intensity) :
+                    this.cpuSharpen(this.originalImageData, intensity);
+                
+                this.ctx.putImageData(processed, 0, 0);
+                this.currentImageData = processed;
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            cpuSharpen(imageData, intensity) {
+                const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+                return this.convolve(imageData, kernel, intensity);
+            }
+
+            async gpuSharpen(imageData, intensity) {
+                if (!this.gpuEnabled) return imageData;
+
+                const adapter = await navigator.gpu.requestAdapter();
+                const device = await adapter.requestDevice();
+                const module = device.createShaderModule({
+                    code: `
+                        [[block]] struct ImageData {
+                            width: i32,
+                            height: i32,
+                            data: array<u32>,
+                        };
+
+                        [[group(0), binding(0)]]
+                        var<storage, read_write> image: ImageData;
+
+                        [[stage(compute), workgroup_size(8, 8)]]
+                        fn main([[builtin(global_invocation_id)]] id: vec3<u32>) {
+                            let x = id.x;
+                            let y = id.y;
+                            if (x < image.width && y < image.height) {
+                                let index = x + y * image.width;
+                                let color = image.data[index];
+                                // 简单的锐化逻辑
+                                image.data[index] = color * intensity;
+                            }
+                        }
+                    `
+                });
+
+                // 创建缓冲区并传输数据
+                const buffer = device.createBuffer({
+                    size: imageData.data.length * 4,
+                    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Uint32Array(buffer.getMappedRange()).set(imageData.data);
+                buffer.unmap();
+
+                // 创建绑定组和管线
+                const bindGroupLayout = device.createBindGroupLayout({
+                    entries: [
+                        { binding: 0, visibility: GPUShaderStage.COMPUTE, storageTexture: {} },
+                    ],
+                });
+                const pipelineLayout = device.createPipelineLayout({
+                    bindGroupLayouts: [bindGroupLayout],
+                });
+                const pipeline = device.createComputePipeline({
+                    layout: pipelineLayout,
+                    compute: { module, entryPoint: 'main' },
+                });
+
+                const bindGroup = device.createBindGroup({
+                    layout: bindGroupLayout,
+                    entries: [
+                        { binding: 0, resource: { buffer } },
+                    ],
+                });
+
+                // 执行计算
+                const commandEncoder = device.createCommandEncoder();
+                const pass = commandEncoder.beginComputePass();
+                pass.setPipeline(pipeline);
+                pass.setBindGroup(0, bindGroup);
+                pass.dispatchWorkgroups(Math.ceil(imageData.width / 8), Math.ceil(imageData.height / 8));
+                pass.end();
+                device.queue.submit([commandEncoder.finish()]);
+
+                // 读取结果
+                const resultBuffer = device.createBuffer({
+                    size: imageData.data.length * 4,
+                    usage: GPUBufferUsage.COPY_SRC,
+                });
+                device.queue.copyBufferToBuffer(buffer, 0, resultBuffer, 0, imageData.data.length * 4);
+                const result = new Uint32Array(await resultBuffer.mapReadAsync());
+                resultBuffer.unmap();
+
+                return result;
+            }
+
+            applyBrightness(value) {
+                if (!this.originalImageData) return;
+
+                const data = this.originalImageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] *= value;     // R
+                    data[i + 1] *= value; // G
+                    data[i + 2] *= value; // B
+                }
+                this.ctx.putImageData(this.originalImageData, 0, 0);
+                this.currentImageData = this.originalImageData;
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            applyContrast(value) {
+                if (!this.originalImageData) return;
+
+                const data = this.originalImageData.data;
+                const factor = (value + 1) / (1 + (1 - value) * (128 / 255));
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = ((data[i] - 128) * factor) + 128;     // R
+                    data[i + 1] = ((data[i + 1] - 128) * factor) + 128; // G
+                    data[i + 2] = ((data[i + 2] - 128) * factor) + 128; // B
+                }
+                this.ctx.putImageData(this.originalImageData, 0, 0);
+                this.currentImageData = this.originalImageData;
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.currentImageData = this.history[this.historyIndex];
+                    this.ctx.putImageData(this.currentImageData, 0, 0);
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.currentImageData = this.history[this.historyIndex];
+                    this.ctx.putImageData(this.currentImageData, 0, 0);
+                }
+            }
+
+            rotate90() {
+                if (!this.originalImageData) return;
+
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                this.canvas.width = height;
+                this.canvas.height = width;
+
+                const imageData = this.ctx.getImageData(0, 0, width, height);
+                const newData = this.ctx.createImageData(height, width);
+
+                for (let x = 0; x < width; x++) {
+                    for (let y = 0; y < height; y++) {
+                        const index = (x + y * width) * 4;
+                        const newIndex = ((height - y - 1) + x * height) * 4;
+                        newData.data[newIndex] = imageData.data[index];
+                        newData.data[newIndex + 1] = imageData.data[index + 1];
+                        newData.data[newIndex + 2] = imageData.data[index + 2];
+                        newData.data[newIndex + 3] = imageData.data[index + 3];
+                    }
+                }
+
+                this.ctx.putImageData(newData, 0, 0);
+                this.currentImageData = newData;
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            crop() {
+                if (!this.originalImageData) return;
+
+                const rect = {
+                    x: 0,
+                    y: 0,
+                    width: this.canvas.width,
+                    height: this.canvas.height
+                };
+
+                const crop = () => {
+                    const imageData = this.ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
+                    this.canvas.width = rect.width;
+                    this.canvas.height = rect.height;
+                    this.ctx.putImageData(imageData, 0, 0);
+                    this.currentImageData = imageData;
+                    this.history.push(this.currentImageData);
+                    this.historyIndex++;
+                };
+
+                // 弹出裁剪框
+                const cropBox = document.createElement('div');
+                cropBox.style.position = 'absolute';
+                cropBox.style.width = '100px';
+                cropBox.style.height = '100px';
+                cropBox.style.border = '2px dashed white';
+                cropBox.style.left = '50px';
+                cropBox.style.top = '50px';
+                cropBox.style.resize = 'both';
+                cropBox.style.overflow = 'hidden';
+
+                cropBox.addEventListener('mousedown', (e) => {
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+
+                    const mouseMove = (e) => {
+                        rect.x = Math.min(startX, e.clientX);
+                        rect.y = Math.min(startY, e.clientY);
+                        rect.width = Math.abs(startX - e.clientX);
+                        rect.height = Math.abs(startY - e.clientY);
+                        cropBox.style.left = `${rect.x}px`;
+                        cropBox.style.top = `${rect.y}px`;
+                        cropBox.style.width = `${rect.width}px`;
+                        cropBox.style.height = `${rect.height}px`;
+                    };
+
+                    const mouseUp = () => {
+                        document.removeEventListener('mousemove', mouseMove);
+                        document.removeEventListener('mouseup', mouseUp);
+                        crop();
+                        cropBox.remove();
+                    };
+
+                    document.addEventListener('mousemove', mouseMove);
+                    document.addEventListener('mouseup', mouseUp);
+                });
+
+                this.canvasContainer.appendChild(cropBox);
+            }
+
+            startHardwareMonitor() {
+                setInterval(() => {
+                    const mem = performance.memory;
+                    document.getElementById('memUsage').textContent = 
+                        `${(mem.usedJSHeapSize / 1024 / 1024).toFixed(1)} MB`;
+                    
+                    // 需要Chrome的performance API支持
+                    if (navigator.hardwareConcurrency) {
+                        document.getElementById('cpuUsage').textContent = '检测中...';
+                    } else {
+                        document.getElementById('cpuUsage').textContent = '不支持';
+                    }
+                }, 1000);
+            }
+        }
+
+        // 初始化系统
+        const cospro = new COSProSystem();
+
+        // 工具函数
+        function showLoader() {
+            document.getElementById('processingLoader').style.display = 'block';
+        }
+
+        function hideLoader() {
+            document.getElementById('processingLoader').style.display = 'none';
+        }
+
+        // 全屏切换
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // 对比视图
+        let compareMode = false;
+        function toggleCompare() {
+            compareMode = !compareMode;
+            if (compareMode) {
+                cospro.canvas.addEventListener('mousemove', updateCompare);
+            } else {
+                cospro.canvas.removeEventListener('mousemove', updateCompare);
+            }
+            drawCompare();
+        }
+
+        let compareX = 0;
+        function updateCompare(e) {
+            compareX = e.offsetX;
+            drawCompare();
+        }
+
+        function drawCompare() {
+            if (!compareMode) return;
+
+            const ctx = cospro.ctx;
+            ctx.clearRect(0, 0, cospro.canvas.width, cospro.canvas.height);
+            ctx.drawImage(cospro.originalImageData, 0, 0, compareX, cospro.canvas.height, 0, 0, compareX, cospro.canvas.height);
+            ctx.drawImage(cospro.currentImageData, compareX, 0, cospro.canvas.width - compareX, cospro.canvas.height, compareX, 0, cospro.canvas.width - compareX, cospro.canvas.height);
+        }
+
+        // 导出图片
+        async function saveImage() {
+            if (!cospro.originalImageData) {
+                alert('请先加载图片');
+                return;
+            }
+
+            const blob = await new Promise(resolve => 
+                cospro.canvas.toBlob(resolve, 'image/png', 1)
+            );
+            const link = document.createElement('a');
+            link.download = `cospro-${Date.now()}.png`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+    </script>
+</body>
 </html>
