@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COSPro 3.1 Web专业版</title>
+    <title>COSPro 3.2 Web专业版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -30,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* 左侧控制面板 */
         .control-panel {
             background: var(--panel-bg);
             padding: 20px;
@@ -40,14 +39,12 @@
             border-right: 1px solid #404040;
         }
 
-        /* 主工作区 */
         .workspace {
             position: relative;
             display: grid;
             grid-template-rows: 60px 1fr;
         }
 
-        /* 工具栏 */
         .toolbar {
             display: flex;
             align-items: center;
@@ -57,7 +54,6 @@
             border-bottom: 1px solid #404040;
         }
 
-        /* 画布容器 */
         .canvas-container {
             position: relative;
             overflow: auto;
@@ -70,7 +66,6 @@
             margin: 20px auto;
         }
 
-        /* 模块卡片样式 */
         .module-card {
             background: #333;
             border-radius: 8px;
@@ -87,7 +82,6 @@
             gap: 8px;
         }
 
-        /* 按钮样式 */
         .btn {
             background: #3C3C3C;
             color: white;
@@ -109,7 +103,6 @@
             filter: brightness(1.2);
         }
 
-        /* 滑动条样式 */
         .slider-container {
             margin: 10px 0;
         }
@@ -138,14 +131,12 @@
             cursor: pointer;
         }
 
-        /* 硬件监控 */
         .hardware-monitor {
             display: grid;
             gap: 8px;
             font-size: 14px;
         }
 
-        /* 加载动画 */
         .loader {
             width: 24px;
             height: 24px;
@@ -180,7 +171,7 @@
         <div class="module-card">
             <h2 class="module-title"><i class="fas fa-magic"></i>AI优化</h2>
             <div class="ai-controls">
-                <button class="btn" onclick="autoEnhance()">
+                <button class="btn btn-primary" onclick="autoEnhance()">
                     <i class="fas fa-wand-magic-sparkles"></i>一键增强
                 </button>
                 <div class="slider-container">
@@ -308,14 +299,22 @@
             async loadImage(file) {
                 showLoader();
                 const img = await createImageBitmap(file);
-                this.canvas.width = img.width;
-                this.canvas.height = img.height;
-                this.ctx.drawImage(img, 0, 0);
-                this.originalImageData = this.ctx.getImageData(0, 0, img.width, img.height);
+                this.autoResizeCanvas(img.width, img.height);
+                this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+                this.originalImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
                 this.currentImageData = this.originalImageData;
                 this.history = [this.currentImageData];
                 this.historyIndex = 0;
                 hideLoader();
+            }
+
+            autoResizeCanvas(width, height) {
+                const maxWidth = window.innerWidth * 0.75;
+                const maxHeight = window.innerHeight * 0.75;
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+
+                this.canvas.width = width * ratio;
+                this.canvas.height = height * ratio;
             }
 
             applySharpness(intensity) {
@@ -565,6 +564,103 @@
                         document.getElementById('cpuUsage').textContent = '不支持';
                     }
                 }, 1000);
+            }
+
+            autoEnhance() {
+                if (!this.originalImageData) return;
+
+                // 自动校正
+                this.autoCorrect();
+
+                // 皮肤柔化
+                this.skinSmoothing();
+
+                // 风格预设
+                this.applyStylePreset();
+
+                // 自动修复
+                this.autoRepair();
+
+                // 自动处理
+                this.autoProcess();
+            }
+
+            autoCorrect() {
+                // 自动校正逻辑
+                // 示例：自动调整亮度和对比度
+                this.applyBrightness(1.2);
+                this.applyContrast(1.2);
+            }
+
+            skinSmoothing() {
+                // 皮肤柔化逻辑
+                // 示例：简单的高斯模糊
+                const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                const blurredData = this.gaussianBlur(imageData, 2);
+                this.ctx.putImageData(blurredData, 0, 0);
+                this.currentImageData = blurredData;
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            applyStylePreset() {
+                // 风格预设逻辑
+                // 示例：应用预设的风格滤镜
+                this.applyContrast(1.3);
+                this.applyBrightness(1.1);
+            }
+
+            autoRepair() {
+                // 自动修复逻辑
+                // 示例：简单的边缘增强
+                this.applySharpness(1.5);
+            }
+
+            autoProcess() {
+                // 自动处理逻辑
+                // 示例：应用一系列预设效果
+                this.applyBrightness(1.1);
+                this.applyContrast(1.2);
+                this.applySharpness(1.3);
+            }
+
+            gaussianBlur(imageData, radius) {
+                // 高斯模糊算法
+                const kernelSize = radius * 2 + 1;
+                const kernel = new Array(kernelSize).fill(0).map((_, i) => Math.exp(-((i - radius) ** 2) / (2 * radius ** 2)));
+                const kernelSum = kernel.reduce((a, b) => a + b, 0);
+                kernel.forEach((v, i) => kernel[i] /= kernelSum);
+
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+
+                const output = new Uint8ClampedArray(data.length);
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const index = (y * width + x) * 4;
+                        let r = 0, g = 0, b = 0;
+
+                        for (let i = -radius; i <= radius; i++) {
+                            for (let j = -radius; j <= radius; j++) {
+                                const nx = Math.max(0, Math.min(width - 1, x + i));
+                                const ny = Math.max(0, Math.min(height - 1, y + j));
+                                const nIndex = (ny * width + nx) * 4;
+                                r += data[nIndex] * kernel[Math.abs(i)];
+                                g += data[nIndex + 1] * kernel[Math.abs(i)];
+                                b += data[nIndex + 2] * kernel[Math.abs(i)];
+                            }
+                        }
+
+                        output[index] = r;
+                        output[index + 1] = g;
+                        output[index + 2] = b;
+                        output[index + 3] = data[index + 3];
+                    }
+                }
+
+                return new ImageData(output, width, height);
             }
         }
 
