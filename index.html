@@ -198,6 +198,18 @@
             </div>
         </div>
 
+        <!-- 样式选择 -->
+        <div class="module-card">
+            <h2 class="module-title"><i class="fas fa-paint-brush"></i>样式选择</h2>
+            <select id="styleSelect" onchange="applyStyle()">
+                <option value="default">默认</option>
+                <option value="vintage">复古</option>
+                <option value="modern">现代</option>
+                <option value="warm">温暖</option>
+                <option value="cool">冷色调</option>
+            </select>
+        </div>
+
         <!-- 硬件监控 -->
         <div class="module-card">
             <h2 class="module-title"><i class="fas fa-microchip"></i>系统状态</h2>
@@ -661,6 +673,67 @@
                 }
 
                 return new ImageData(output, width, height);
+            }
+
+            applyStyle() {
+                const style = document.getElementById('styleSelect').value;
+                switch (style) {
+                    case 'vintage':
+                        this.applyVintageEffect();
+                        break;
+                    case 'modern':
+                        this.applyModernEffect();
+                        break;
+                    case 'warm':
+                        this.applyWarmEffect();
+                        break;
+                    case 'cool':
+                        this.applyCoolEffect();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            applyVintageEffect() {
+                // 应用复古效果
+                this.applyBrightness(0.9);
+                this.applyContrast(1.1);
+            }
+
+            applyModernEffect() {
+                // 应用现代效果
+                this.applyBrightness(1.1);
+                this.applyContrast(1.2);
+            }
+
+            applyWarmEffect() {
+                // 应用温暖效果
+                this.applyBrightness(1.1);
+                this.applyContrast(1.1);
+                // 示例：增加暖色调
+                const data = this.currentImageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i + 0] = Math.min(255, data[i + 0] + 20); // R
+                    data[i + 1] = Math.min(255, data[i + 1] + 10); // G
+                }
+                this.ctx.putImageData(this.currentImageData, 0, 0);
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
+            }
+
+            applyCoolEffect() {
+                // 应用冷色调效果
+                this.applyBrightness(1.0);
+                this.applyContrast(1.1);
+                // 示例：增加冷色调
+                const data = this.currentImageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i + 2] = Math.min(255, data[i + 2] + 20); // B
+                }
+                this.ctx.putImageData(this.currentImageData, 0, 0);
+                this.history.push(this.currentImageData);
+                this.historyIndex++;
             }
         }
 
